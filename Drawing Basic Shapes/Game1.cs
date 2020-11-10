@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace Drawing_Basic_Shapes
 {
@@ -11,7 +12,7 @@ namespace Drawing_Basic_Shapes
 
         // Textures
 
-        Rectangle fillRect, borderRect;
+        Rectangle fillRect, borderRect, ellpiseRect;
 
 
         public Game1()
@@ -26,6 +27,7 @@ namespace Drawing_Basic_Shapes
             // TODO: Add your initialization logic here
             fillRect = new Rectangle(10, 10, 150, 300);
             borderRect = new Rectangle(500, 10, 150, 200);
+            ellpiseRect = new Rectangle(200, 10, 100, 50);
 
             base.Initialize();
         }
@@ -56,7 +58,8 @@ namespace Drawing_Basic_Shapes
 
             _spriteBatch.Draw(makeRectFill(Color.AntiqueWhite), fillRect, Color.White);
             _spriteBatch.Draw(makeRectOutline(borderRect, 2, Color.AntiqueWhite), borderRect, Color.White);
-
+            _spriteBatch.Draw(makeEllipse(ellpiseRect, Color.Red), ellpiseRect, Color.White);
+            DrawLine(_spriteBatch, new Vector2(0, 0), new Vector2(200, 200), 4);
 
             _spriteBatch.End();
 
@@ -64,7 +67,40 @@ namespace Drawing_Basic_Shapes
             base.Draw(gameTime);
         }
 
+        // Taken from https://stackoverflow.com/questions/2519304/draw-simple-circle-in-xna
+        public Texture2D makeEllipse(Rectangle rect, Color color)
+        {
+            int radius;
+            if (rect.Width >= rect.Height)
+                radius = rect.Width;
+            else
+                radius = rect.Height;
 
+            Texture2D texture = new Texture2D(GraphicsDevice, radius, radius);
+            Color[] colorData = new Color[radius * radius];
+
+            float diam = radius / 2f;
+            float diamsq = diam * diam;
+
+            for (int x = 0; x < radius; x++)
+            {
+                for (int y = 0; y < radius; y++)
+                {
+                    int index = x * radius + y;
+                    Vector2 pos = new Vector2(x - diam, y - diam);
+                    if (pos.LengthSquared() <= diamsq)
+                    {
+                        colorData[index] = color;
+                    }
+                    else
+                    {
+                        colorData[index] = Color.Transparent;
+                    }
+                }
+            }
+            texture.SetData(colorData);
+            return texture;
+        }
 
         //  Taken from https://stackoverflow.com/questions/5751732/draw-rectangle-in-xna-using-spritebatch
 
@@ -104,6 +140,30 @@ namespace Drawing_Basic_Shapes
             }
             rect.SetData(colors);
             return rect;
+        }
+
+        void DrawLine(SpriteBatch sb, Vector2 start, Vector2 end, int thickness)
+        {
+            Vector2 edge = end - start;
+            Texture2D t = new Texture2D(GraphicsDevice, 1, 1);
+            // calculate angle to rotate line
+            float angle =
+                (float)Math.Atan2(edge.Y, edge.X);
+
+
+            sb.Draw(t,
+                new Rectangle(// rectangle defines shape of line and position of start of line
+                    (int)start.X,
+                    (int)start.Y,
+                    (int)edge.Length(), //sb will strech the texture to fill this rectangle
+                    thickness), //width of line, change this to make thicker line
+                null,
+                Color.Red, //colour of line
+                angle,     //angle of line (calulated above)
+                new Vector2(0, 0), // point in line about which to rotate
+                SpriteEffects.None,
+                0);
+
         }
 
     }
